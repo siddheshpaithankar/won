@@ -1,0 +1,392 @@
+import './App.css';
+import { useEffect, useState } from 'react';
+import axios from "axios"
+import Formtable from './components/formtable';
+
+
+
+axios.defaults.baseURL="http://localhost:8080/"
+
+function App() {
+  const[addsection,setAddSection]=useState(false)//1
+  const[editSection,setEditSection]=useState(false)//2
+  const[formData,setFormData]=useState({//3
+    name:"",
+    mobile:"",
+  })
+  const[formDataEdit,setFormDataEdit]=useState({//4
+    name:"",
+    mobile:"",
+    _id:""
+  })
+  const[datalist,setDataList]=useState([])//5
+
+  
+
+  const handleOnChange=(e)=>    //input change
+    {
+       const {value,name}=e.target
+       setFormData((preve)=>
+        {
+         return{
+          ...preve,
+          [name]:value
+          }
+        }
+      )
+    }
+
+  
+  const handleSubmit=async(e)=>
+    {
+      e.preventDefault()
+      const data=await axios.post("/post",formData)  //submit
+      console.log(data)
+      if(data.data.success)
+        {
+        setAddSection(false)
+        alert(data.data.message)
+        getFetchData()
+        }
+  }
+
+
+  const getFetchData=async()=>
+   {
+      const data=await axios.get("/")          //get data
+      console.log(data)
+      if(data.data.success)
+        {
+          setDataList(data.data.data)
+        }
+
+   }
+  useEffect(()=>{
+    getFetchData()
+
+  },[])
+ const handleDelete=async(id)=>
+  {
+      const data=await axios.delete("/delete/"+id)  //delete
+     if(data.data.success)
+      {
+       getFetchData()
+       alert(data.data.message)
+      }
+  }
+
+
+ const handleUpdate=async(e)=>
+  {
+     e.preventDefault()
+     const data=await axios.put("/put",formDataEdit)  //edit
+     console.log(data)
+     if(data.data.success)
+      {
+        getFetchData()
+        alert(data.data.message)
+      }
+ }
+const handleEditOnChange=async(e)=> //handle edit input change
+  {
+    const {value,name}=e.target
+    setFormDataEdit((preve)=>
+      {
+     return{
+       ...preve,
+       [name]:value
+       }
+     })
+  }
+const handleEdit=(e1)=>
+  {
+   setFormDataEdit(e1)
+   setEditSection(true)
+  }
+
+  
+
+
+return (
+    <>
+    <div className="addcontainer">
+      <button className="btn btn-add" onClick={()=>setAddSection(true)} >Add</button>
+      {
+        addsection &&(
+         <Formtable
+          handleSubmit={handleSubmit}
+          handleOnChange={handleOnChange}
+          handleclose={()=>setAddSection(false) }
+          rest={formData}
+          />
+        )
+      }
+      {
+      editSection && (
+        <Formtable
+      handleSubmit={handleUpdate}
+      handleOnChange={handleEditOnChange}
+      handleclose={()=>setEditSection(false)}
+      rest={formDataEdit}
+  />
+)}
+      <div className='tableContainer'>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone Number</th>
+              <th>
+            
+              </th>
+            </tr>
+
+          </thead>
+          <tbody>
+            {
+              datalist.map((e1)=>{
+                console.log(e1)
+                return(
+                  <tr>
+                    <td>{e1.name}</td>
+                    <td>{e1.phone}</td>
+                    <td>
+                    <button className='btn btn-edit' onClick={(()=>{
+                      setAddSection(true)
+                      handleEdit(e1)})}>Edit</button>
+                    <button className='btn btn-delete' onClick={()=>handleDelete(e1._id)}>Delete</button>
+                    </td>
+        
+                  </tr>
+                )
+
+              })
+            }
+          </tbody>
+        </table>
+                                                          //app.ja
+
+      </div>
+</div>
+
+  
+      
+    </>
+  );
+}
+
+
+export default App;
+===============================================================================================
+*{
+  box-sizing: border-box;
+}
+body{
+  background-color: #f5f6ff;
+}
+.container{
+  padding: 10px;
+ 
+  max-width: fit-content;
+  margin: 50px auto;
+}
+.btn{
+  border: none;
+  padding: 7px 15px;
+  font-size: 18px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.btn-add{
+  background-color: #194064;
+  color: white;
+  
+}
+.addcontainer{
+  position: absolute;
+  background-color: rgb(0,0,0,0.2);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top:0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.addcontainer form{
+  width: 420px;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 50px 40px;
+  box-shadow:5px 5px 10px rgb(0,0,0,0.2);
+  border-radius:5px;
+
+}
+.addcontainer form label{
+font-size:18px;
+
+}
+
+.addcontainer form input{
+    font-size:18px;
+    padding:5px;
+    margin-top:5px;
+    margin-bottom:10px;
+}
+
+.addcontainer form button{
+background-color:royalblue;
+color:white;
+font-weigt:500px;
+margin-top:20px;
+}
+.addcontainer form .close-btn{
+margin-left: auto;
+font-size: 18px;
+width: 20px;
+height: 20px;
+
+display: flex;
+justify-content: center;
+align-items: center;
+border-radius: 20px;
+border: 1px solid black;
+cursor: pointer;
+
+}
+.tableContainer{
+  margin-top: 40px;
+}
+.tableContainer table thead tr th{
+  min-width: 200px;
+  background-color: red;
+  padding: 7px;
+  align-items: center;
+ }
+ .tableContainer table thead tr{
+  align-items: center;
+  background-color: #f0eaea;
+ }
+ .tableContainer table tbody tr td{
+  align-items: center;
+  min-width: 200px;
+
+  padding: 7px;
+ }
+ .tableContainer table tbody tr td{
+  border-bottom: 1px solid #c9c5c2;
+ }
+ .tableContainer table tbody tr{
+  border: 1px solid #c9c5c2;
+ }
+ .btn-edit{
+  font-size: 16px;
+  padding: 5px 10px;
+  background-color:#e2f413;
+  color:black;
+ }
+
+ .btn-delete{
+  font-size: 16px;
+  padding: 5px 10px;                        //app.css
+  margin: 0px 10px;
+  background-color: red;
+color: white;
+ }
+ ===================================================================================================
+import React from 'react';
+import "../App.css";
+import { MdClose } from "react-icons/md";
+import "../App.js"
+
+
+const formtable = ({handleSubmit,handleOnChange,handleclose,rest}) => {
+    return ( 
+        <div className="addcontainer">
+        <form onSubmit={handleSubmit}>
+          <div className='close-btn' onClick={handleclose}>
+            <MdClose />
+          </div>
+          <label htmlFor="name">Name:</label>
+          <input type="text" id="name" name="name" onChange={handleOnChange} value={rest.name} />
+
+          <label htmlFor="phone">Phone:</label>
+          <input type="text" id="phone" name="phone" onChange={handleOnChange} value={rest.phone} />
+          <button className="btn">Submit</button>
+        </form>
+      </div>
+    )
+}
+
+export default formtable;                           //component=>formtable
+========================================================================================================
+console.log('sid paithankar');
+//console.log("sidhuuu")
+
+var express=require("express")
+var bodyParser=require("body-parser")
+var path=require("path")
+var mongoose=require("mongoose")
+var cors=require("cors")
+const { timeStamp } = require("console")
+
+var app=express()
+app.use(cors())
+app.use(express.json())
+
+var PORT=process.env.PORT || 8080
+
+
+var schemaData =mongoose.Schema({            //write the schema
+    name:String,
+    phone:String,
+    
+})
+
+
+var userModel=mongoose.model("users",schemaData)  //converting schema into model
+
+
+app.get("/",async(req,res)=>{                 //get method to fetch all data
+    var data=await userModel.find({})
+    res.json({success:true, data : data})
+})
+
+
+app.post("/post",async(req,res)=>{            //post method to add new data
+    console.log(req.body)
+     var data=new userModel(req.body)
+    await data.save()
+
+
+    res.send({success: true,message:"Data added successfully"})
+})
+
+
+
+app.put("/put",async(req,res)=>{            //put method to update data
+    console.log(req.body)
+    var {_id,...rest}=req.body
+    console.log(rest)
+    var data=await userModel.updateOne({_id : _id},rest)
+    res.send({success: true, message:"Data updated successfully",data : data}) 
+})
+
+
+
+app.delete("/delete/:id",async(req,res)=>{            //delete method to delete data
+    var data=await userModel.deleteOne({_id : req.params.id})
+    var id=req.params.id
+    console.log(id)
+    res.send({success: true, message:"Data deleted successfully",data : data}) 
+})
+
+
+mongoose.connect("mongodb://localhost:27017/crud")        //connect to database
+.then(()=>{console.log("Connected to db => final")
+app.listen(PORT,()=>console.log("server is running  "))
+})
+.catch((err)=>console.log("Error connecting"))          //index.js//node.js
+
+
